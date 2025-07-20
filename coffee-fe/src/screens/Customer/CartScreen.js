@@ -182,7 +182,19 @@ const CartScreen = ({ navigation }) => {
               }}
               onPress={() => {
                 setShowInvoice(false);
-                navigation.navigate('Home');
+                setTimeout(() => {
+                  Alert.alert(
+                    'Thank you!',
+                    'Thank you for your purchase!',
+                    [
+                      {
+                        text: 'OK',
+                        onPress: () => navigation.navigate('Home')
+                      }
+                    ],
+                    { cancelable: false }
+                  );
+                }, 300);
               }}
             >
               <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Done</Text>
