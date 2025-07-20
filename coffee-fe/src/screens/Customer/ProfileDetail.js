@@ -57,6 +57,25 @@ const ProfileScreen = () => {
   }, []);
 
   const handleSave = async () => {
+    // Validate required fields
+    if (!formData.address.trim()) {
+      Alert.alert('Validation Error', 'Address is required.');
+      return;
+    }
+    if (!formData.phone.trim()) {
+      Alert.alert('Validation Error', 'Phone number is required.');
+      return;
+    }
+    // Validate phone: starts with 0, 10-11 digits
+    const phoneRegex = /^0\d{9,10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      Alert.alert(
+        'Validation Error',
+        'Phone number must start with 0 and contain 10 to 11 digits.'
+      );
+      return;
+    }
+
     try {
       const userId = await AsyncStorage.getItem('userId');
       if (!userId) {
