@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image, Alert, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../../context/CartContext';
@@ -8,6 +8,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CartScreen = ({ navigation }) => {
   const { items, total, addToCart, removeFromCart, clearCart } = useCart();
+  const [showInvoice, setShowInvoice] = useState(false);
+  const [invoiceData, setInvoiceData] = useState(null);
 
   const handleCheckout = async () => {
     if (items.length === 0) {
@@ -41,16 +43,15 @@ const CartScreen = ({ navigation }) => {
       }
 
       if (response.result) {
-        Alert.alert(
-          'Success',
-          'Your order has been placed successfully!',
-          [{
-            text: 'OK', onPress: () => {
-              clearCart();
-              navigation.navigate('Home');
-            }
-          }]
-        );
+        // Show invoice modal instead of Alert
+        setInvoiceData({
+          orderId: response.result._id || Math.floor(Math.random() * 1000000),
+          date: new Date(),
+          items: [...items],
+          total: total,
+        });
+        setShowInvoice(true);
+        clearCart();
       } else {
         Alert.alert('Error', 'Failed to place order. Please try again.');
       }
@@ -98,6 +99,23 @@ const CartScreen = ({ navigation }) => {
             </View>
           ))}
 
+          {/* Clear All Cart Button */}
+          <TouchableOpacity
+            style={styles.clearAllButton}
+            onPress={() => {
+              Alert.alert(
+                'Clear Cart',
+                'Are you sure you want to remove all items from your cart?',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'OK', onPress: clearCart }
+                ]
+              );
+            }}
+          >
+            <Text style={styles.clearAllButtonText}>Clear All Cart</Text>
+          </TouchableOpacity>
+
           <View style={styles.summaryContainer}>
             <Text style={styles.summaryText}>Total</Text>
             <Text style={styles.summaryAmount}>${total.toFixed(2)}</Text>
@@ -119,6 +137,59 @@ const CartScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       )}
+
+      <Modal
+        visible={showInvoice}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowInvoice(false)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.3)',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}>
+          <View style={{
+            backgroundColor: '#fff',
+            borderRadius: 12,
+            padding: 24,
+            width: '90%',
+            elevation: 10,
+          }}>
+            <Text style={{ fontSize: 22, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' }}>Invoice</Text>
+            <Text style={{ fontSize: 16, marginBottom: 5 }}>Order ID: {invoiceData?.orderId}</Text>
+            <Text style={{ fontSize: 16, marginBottom: 5 }}>Date: {invoiceData?.date?.toLocaleString()}</Text>
+            <View style={{ borderBottomWidth: 1, borderColor: '#eee', marginVertical: 10 }} />
+            {invoiceData?.items?.map((item, idx) => (
+              <View key={idx} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 }}>
+                <Text style={{ fontSize: 15 }}>{item.product.name} x{item.quantity}</Text>
+                <Text style={{ fontSize: 15 }}>${(item.product.price * item.quantity).toFixed(2)}</Text>
+              </View>
+            ))}
+            <View style={{ borderTopWidth: 1, borderColor: '#eee', marginVertical: 10 }} />
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 17, fontWeight: 'bold' }}>Total</Text>
+              <Text style={{ fontSize: 17, fontWeight: 'bold', color: '#007bff' }}>${invoiceData?.total?.toFixed(2)}</Text>
+            </View>
+            <TouchableOpacity
+              style={{
+                marginTop: 20,
+                backgroundColor: '#007bff',
+                paddingVertical: 12,
+                borderRadius: 8,
+                alignItems: 'center'
+              }}
+              onPress={() => {
+                setShowInvoice(false);
+                navigation.navigate('Home');
+              }}
+            >
+              <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -267,6 +338,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'red',
     marginLeft: 5,
+    fontWeight: 'bold',
+  },
+  clearAllButton: {
+    backgroundColor: '#dc3545',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  clearAllButtonText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });
