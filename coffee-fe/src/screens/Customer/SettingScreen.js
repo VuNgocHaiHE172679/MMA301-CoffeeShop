@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   Switch,
   Linking,
+  Modal,
+  TextInput,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +16,8 @@ import { Ionicons } from '@expo/vector-icons';
 const SettingScreen = ({ navigation }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(true);
+  const [faqModalVisible, setFaqModalVisible] = useState(false);
+  const [faqQuestion, setFaqQuestion] = useState('');
 
   const toggleDarkMode = () => setIsDarkMode((prev) => !prev);
   const toggleNotifications = () => setIsNotificationsEnabled((prev) => !prev);
@@ -24,6 +29,22 @@ const SettingScreen = ({ navigation }) => {
   const handleLogout = () => {
     // Xử lý đăng xuất
     navigation.navigate('Login');
+  };
+
+  const handleOpenFaqModal = () => setFaqModalVisible(true);
+  const handleCloseFaqModal = () => {
+    setFaqQuestion('');
+    setFaqModalVisible(false);
+  };
+
+  const handleSubmitFaq = () => {
+    if (!faqQuestion.trim()) {
+      Alert.alert('Validation', 'Please enter your question.');
+      return;
+    }
+    // TODO: Gửi câu hỏi lên server tại đây nếu cần
+    Alert.alert('Submitted', 'Your question has been sent!');
+    handleCloseFaqModal();
   };
 
   return (
@@ -74,7 +95,7 @@ const SettingScreen = ({ navigation }) => {
       {/* Help & Support Section */}
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, isDarkMode && styles.darkText]}>Help & Support</Text>
-        <TouchableOpacity style={styles.option}>
+        <TouchableOpacity style={styles.option} onPress={handleOpenFaqModal}>
           <Ionicons name="help-circle" size={20} color={isDarkMode ? '#fff' : '#000'} />
           <Text style={[styles.optionText, isDarkMode && styles.darkText]}>FAQs</Text>
         </TouchableOpacity>
@@ -97,6 +118,35 @@ const SettingScreen = ({ navigation }) => {
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutText}>Logout</Text>
       </TouchableOpacity>
+
+      {/* FAQ Modal */}
+      <Modal
+        visible={faqModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={handleCloseFaqModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Ask a Question</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Enter your question..."
+              value={faqQuestion}
+              onChangeText={setFaqQuestion}
+              multiline
+            />
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+              <TouchableOpacity onPress={handleCloseFaqModal} style={styles.modalButton}>
+                <Text style={{ color: '#333' }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSubmitFaq} style={[styles.modalButton, { marginLeft: 10 }]}>
+                <Text style={{ color: '#007bff' }}>Submit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -154,6 +204,39 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 12,
+    width: '85%',
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#333',
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 10,
+    minHeight: 60,
+    fontSize: 16,
+    marginBottom: 15,
+    color: '#333',
+  },
+  modalButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
 });
 
