@@ -89,7 +89,7 @@ const CartScreen = ({ navigation }) => {
 
               {/* Remove Button */}
               <TouchableOpacity
-                onPress={() => clearCart()}
+                onPress={() => removeFromCart(item.product._id)}
                 style={styles.removeButton}
               >
                 <Ionicons name="trash-outline" size={22} color="red" />
